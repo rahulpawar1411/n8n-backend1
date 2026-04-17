@@ -1,7 +1,7 @@
 // Import required libraries
 const express = require('express'); // Framework for creating the API
 const cors = require('cors');       // Allows your API to be called from different domains (like a React or HTML website)
-const db = require('./db');         // Import our database configuration from db.js
+const db = require('../db');         // Import our database configuration from db.js
 require('dotenv').config();          // Load environment variables (PORT, DB credentials)
 
 const app = express();
