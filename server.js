@@ -153,7 +153,12 @@ app.get('/api/chat/:agent_type/:sessionid', async (req, res) => {
   }
 });
 
-// --- Start the Server ---
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on http://localhost:${PORT}`);
-});
+// --- Start the Server (Only for local development) ---
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server is running on http://localhost:${PORT}`);
+  });
+}
+
+// Export the app for Vercel to use as a serverless function
+module.exports = app;
