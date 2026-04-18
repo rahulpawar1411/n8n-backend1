@@ -29,16 +29,28 @@ app.get('/', (req, res) => {
  * Purpose: Receives chat data from Postman/Frontend and saves it to MySQL.
  */
 app.post('/api/chat', async (req, res) => {
-  // Extract data. We will check both the top level and inside a "body" object for flexibility.
+  /* 
+  // --- OLD MAPPING (Commented for reference) ---
   let { agent_type, sessionid, user, ai } = req.body;
-
-  // If the data is wrapped in a "body" object (like your new format)
   if (req.body.body) {
     agent_type = agent_type || req.body.body.agent || req.body.body.agent_type;
     sessionid = sessionid || req.body.body.sessionId || req.body.body.sessionid;
     user = user || req.body.body.message || req.body.body.user;
-    // Check for "ai", "output", "response", "text", or "answer"
     ai = ai || req.body.body.ai || req.body.body.output || req.body.body.response || req.body.body.text || req.body.body.answer;
+  }
+  */
+
+  // --- NEW SIMPLE MAPPING ---
+  // 1. Get data from the top level
+  let { agent_type, sessionid, user, ai } = req.body;
+
+  // 2. If data is hidden inside a "body" object (like in n8n/webhooks), get it from there
+  if (req.body.body) {
+    const b = req.body.body;
+    agent_type = agent_type || b.agent     || b.agent_type;
+    sessionid  = sessionid  || b.sessionId || b.sessionid;
+    user       = user       || b.user      || b.message;  // Map 'user' or 'message' to 'user'
+    ai         = ai         || b.ai        || b.output;   // Map 'ai' or 'output' to 'ai'
   }
 
   // STEP 1: Validation - check if required fields are missing
