@@ -11,6 +11,28 @@ const PORT = process.env.PORT || 5000; // Use PORT from .env, or default to 5000
 app.use(cors());           // Use CORS so your frontend can talk to this backend
 app.use(express.json());   // Tells Express to automatically parse JSON data sent in request bodies
 
+// --- Bearer Token Auth Middleware ---
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Extract token from "Bearer <TOKEN>"
+
+  if (!token) {
+    return res.status(401).json({ 
+      success: false, 
+      message: 'Access Denied: No Token Provided' 
+    });
+  }
+
+  if (token !== process.env.API_AUTH_TOKEN) {
+    return res.status(403).json({ 
+      success: false, 
+      message: 'Access Denied: Invalid Token' 
+    });
+  }
+
+  next(); // Token is valid, proceed to the actual route handler
+};
+
 /**
  * 1. Health Check Route
  * URL: GET http://localhost:5000/
@@ -28,7 +50,7 @@ app.get('/', (req, res) => {
  * URL: POST http://localhost:5000/api/chat
  * Purpose: Receives chat data from Postman/Frontend and saves it to MySQL.
  */
-app.post('/api/chat', async (req, res) => {
+app.post('/api/chat', authenticateToken, async (req, res) => {
   /* 
   // --- OLD MAPPING (Commented for reference) ---
   let { agent_type, sessionid, user, ai } = req.body;
@@ -91,7 +113,7 @@ app.post('/api/chat', async (req, res) => {
  * URL: GET http://localhost:5000/api/chat
  * Purpose: Returns every single row from the chat history table.
  */
-app.get('/api/chat', async (req, res) => {
+app.get('/api/chat', authenticateToken, async (req, res) => {
   try {
     // Get all records, sorted by ID descending (newest first)
     const query = 'SELECT * FROM ai_chat_history ORDER BY id DESC';
@@ -116,7 +138,7 @@ app.get('/api/chat', async (req, res) => {
  * URL: GET http://localhost:5000/api/chat/:agent_type
  * Example: http://localhost:5000/api/chat/realstate
  */
-app.get('/api/chat/:agent_type', async (req, res) => {
+app.get('/api/chat/:agent_type', authenticateToken, async (req, res) => {
   const { agent_type } = req.params; // Get the agent name from the URL
 
   try {
@@ -143,7 +165,7 @@ app.get('/api/chat/:agent_type', async (req, res) => {
  * URL: GET http://localhost:5000/api/chat/:agent_type/:sessionid
  * Example: http://localhost:5000/api/chat/realstate/0101
  */
-app.get('/api/chat/:agent_type/:sessionid', async (req, res) => {
+app.get('/api/chat/:agent_type/:sessionid', authenticateToken, async (req, res) => {
   const { agent_type, sessionid } = req.params; // Get both values from the URL
 
   try {
